@@ -3,10 +3,9 @@ import 'prediction.dart';
 
 class FetchedPrediction extends Prediction {
   final dynamic output;
-  final PredictionStatus status;
   final DateTime? startedAt;
   final DateTime? completedAt;
-  final Map<String, dynamic> metrics;
+  final Map<String, dynamic>? metrics;
 
   FetchedPrediction({
     required super.id,
@@ -17,11 +16,11 @@ class FetchedPrediction extends Prediction {
     required super.error,
     required super.logs,
     required super.model,
+    required super.status,
     required this.completedAt,
     required this.metrics,
     required this.output,
     required this.startedAt,
-    required this.status,
   });
 
   factory FetchedPrediction.fromJson(Map<String, dynamic> json) {
@@ -48,11 +47,11 @@ class FetchedPrediction extends Prediction {
 
   @override
   List<Object?> get props => [
-        ...super.props,
-        completedAt,
-        metrics,
-        output,
-        startedAt,
-        status,
-      ];
+    ...super.props,
+    completedAt,
+    metrics,
+    output,
+    startedAt,
+    status,
+  ];
 }

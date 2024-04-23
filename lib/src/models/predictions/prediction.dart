@@ -15,6 +15,7 @@ class Prediction extends Equatable {
   final String? error;
   final String? logs;
   final String model;
+  final PredictionStatus status;
 
   const Prediction({
     required this.id,
@@ -25,7 +26,16 @@ class Prediction extends Equatable {
     required this.error,
     required this.logs,
     required this.model,
+    required this.status,
+
   });
+
+  bool get isTerminated {
+    return status == PredictionStatus.succeeded ||
+        status == PredictionStatus.failed ||
+        status == PredictionStatus.canceled;
+  }
+
 
   factory Prediction.fromJson(Map<String, dynamic> json) {
     return Prediction(
@@ -37,6 +47,7 @@ class Prediction extends Equatable {
       error: json['error'],
       urls: PredictionUrls.fromJson(json['urls']),
       createdAt: DateTime.parse(json['created_at']),
+      status: PredictionStatus.fromResponseField(json['status']),
     );
   }
 

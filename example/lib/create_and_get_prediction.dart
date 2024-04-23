@@ -1,10 +1,9 @@
 import 'package:replicate/replicate.dart';
 
-import 'env/env.dart';
 
 void main() async {
   // Setting your API key.
-  Replicate.apiKey = Env.apiKey;
+  Replicate.apiKey = 'r8_d9FND9DDT2lFwtQ6QzWFRwrYQvGlwen45j1cB';
 
   // Setting showLogs to true will print all the requests and responses to the console.
   Replicate.showLogs = true;

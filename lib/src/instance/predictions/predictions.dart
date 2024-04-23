@@ -6,11 +6,12 @@ import 'package:replicate/src/network/http_client.dart';
 
 import '../../base/predictions_base.dart';
 import '../../models/predictions/fetched_prediction.dart';
+import '../../utils/enum.dart';
 
 /// This is the responsible member of the Replicate's predictions API, where you can call the methods to create, get, list and cancel predictions.
 class ReplicatePrediction implements ReplicatePredictionBase {
   /// This is a registry of all the predictions streams that are used, so we can manage each one of them.
-  // final Map<String, PredictionStream> _predictionsStreamRegistry = {};
+   final Map<String, PredictionStream> _predictionsStreamRegistry = {};
 
   /// Cancels a prediction by it's [id], this will stop the prediction from running.
   ///
@@ -124,27 +125,26 @@ class ReplicatePrediction implements ReplicatePredictionBase {
   @override
   Stream<Prediction> snapshots({
     required String id,
-    Duration pollingInterval = const Duration(seconds: 3),
+    Duration pollingInterval = const Duration(seconds: 2),
     bool shouldTriggerOnlyStatusChanges = true,
     bool stopPollingRequestsOnPredictionTermination = true,
   }) {
-    return Stream.empty();
-    // if (_predictionsStreamRegistry.containsKey(id)) {
-    //   return _predictionsStreamRegistry[id]!.stream;
-    // } else {
-    //   final predictionStream = PredictionStream(
-    //     pollingCallback: () async {
-    //       return await get(id: id);
-    //     },
-    //     pollingInterval: pollingInterval,
-    //     shouldTriggerOnlyStatusChanges: shouldTriggerOnlyStatusChanges,
-    //     stopPollingRequestsOnPredictionTermination:
-    //         stopPollingRequestsOnPredictionTermination,
-    //   );
+     if (_predictionsStreamRegistry.containsKey(id)) {
+       return _predictionsStreamRegistry[id]!.stream;
+     } else {
+       final predictionStream = PredictionStream(
+         pollingCallback: () async {
+           return await get(id: id);
+         },
+        pollingInterval: pollingInterval,
+         shouldTriggerOnlyStatusChanges: shouldTriggerOnlyStatusChanges,
+         stopPollingRequestsOnPredictionTermination:
+             stopPollingRequestsOnPredictionTermination,
+       );
 
-    //   _predictionsStreamRegistry[id] = predictionStream;
-    //   return predictionStream.stream;
-    // }
+       _predictionsStreamRegistry[id] = predictionStream;
+       return predictionStream.stream;
+     }
   }
 
   /// Gets a stream of a prediction status updates by it's id, this will return a stream of the [PredictionStatus] object.
@@ -160,18 +160,18 @@ class ReplicatePrediction implements ReplicatePredictionBase {
   /// });
   /// ```
 
-  // Stream<PredictionStatus> statusSnapshots({
-  //   required String id,
-  //   Duration pollingInterval = const Duration(seconds: 3),
-  // }) {
-  //   return snapshots(
-  //     id: id,
-  //     pollingInterval: pollingInterval,
-  //     shouldTriggerOnlyStatusChanges: true,
-  //   ).asyncMap<PredictionStatus>((prediction) {
-  //     return prediction.status;
-  //   });
-  // }
+   Stream<PredictionStatus> statusSnapshots({
+     required String id,
+     Duration pollingInterval = const Duration(seconds: 3),
+   }) {
+     return snapshots(
+       id: id,
+       pollingInterval: pollingInterval,
+       shouldTriggerOnlyStatusChanges: true,
+     ).asyncMap<PredictionStatus>((prediction) {
+       return prediction.status;
+     });
+   }
 
   /// Gets a stream of a prediction logs updates by it's id, this will return a stream of [String].
   ///
@@ -216,22 +216,21 @@ class ReplicatePrediction implements ReplicatePredictionBase {
   /// print(logs);
   /// });
   /// ```
-  Stream<String> logsSnapshots({
+  Stream<String?> logsSnapshots({
     required String id,
     Duration pollingInterval = const Duration(seconds: 3),
     bool shouldTriggerOnlyStatusChanges = false,
     bool stopPollingRequestsOnPredictionTermination = true,
   }) {
-    return Stream.empty();
 
-    // return snapshots(
-    // id: id,
-    // pollingInterval: pollingInterval,
-    // shouldTriggerOnlyStatusChanges: shouldTriggerOnlyStatusChanges,
-    // stopPollingRequestsOnPredictionTermination:
-    // stopPollingRequestsOnPredictionTermination,
-    // ).asyncMap<String>((prediction) {
-    // return prediction.logs;
-    // });
+     return snapshots(
+     id: id,
+     pollingInterval: pollingInterval,
+     shouldTriggerOnlyStatusChanges: shouldTriggerOnlyStatusChanges,
+     stopPollingRequestsOnPredictionTermination:
+     stopPollingRequestsOnPredictionTermination,
+     ).asyncMap<String>((prediction) {
+     return prediction.logs ?? '';
+     });
   }
 }
