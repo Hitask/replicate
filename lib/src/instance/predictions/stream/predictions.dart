@@ -100,6 +100,7 @@ class PredictionStream {
           }
         } catch (e) {
           addError(e);
+          close();
         }
       },
     );
