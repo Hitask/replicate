@@ -9,6 +9,8 @@ A community-maintained Dart client package for Replicate.com, this package let y
 - Dynamic inputs for the possibility to use any model available on Replicate.com flexibly.
 - Wrappers around response fields, for a better developer experience.
 - Easy to configure, and set your settings using this library.
+- **Files API** support for uploading, listing, getting, and deleting files on Replicate.
+- Comprehensive error handling with specific exception types.
 
 # Full Documentation
 
@@ -248,6 +250,122 @@ collectionSlug: "super-resolution",
   print(collection.name); // super resolution
   print(collection.models); // ...
 ```
+
+<br>
+
+# Files API
+
+The Files API allows you to upload, list, get, and delete files on Replicate. This is useful for storing files that you want to use as inputs to models, especially for large files or files that you want to reuse across multiple predictions.
+
+## List Files
+
+Get a paginated list of all files created by the user or organization:
+
+```dart
+PaginatedFiles files = await Replicate.instance.files.list();
+print('Found ${files.results.length} files');
+
+for (ReplicateFile file in files.results) {
+  print('- ${file.name} (${file.size} bytes, ${file.contentType})');
+}
+
+// Check for pagination
+if (files.hasNextPage) {
+  // Note: Pagination for files list is handled through direct API calls
+  print('More files available');
+}
+```
+
+## Create/Upload File
+
+Create a file by uploading its content and optional metadata. You can upload any type of file, but there are some considerations for file size and usage:
+
+```dart
+import 'dart:io';
+
+File localFile = File('/path/to/your/file.jpg');
+
+ReplicateFile uploadedFile = await Replicate.instance.files.create(
+  file: localFile,
+  filename: 'my-image.jpg',
+  contentType: 'image/jpeg', // Optional, defaults to 'application/octet-stream'
+  metadata: { // Optional metadata
+    'description': 'A beautiful landscape photo',
+    'source': 'my-app',
+    'category': 'nature',
+  },
+);
+
+print('Uploaded file: ${uploadedFile.name}');
+print('File ID: ${uploadedFile.id}');
+print('File URL: ${uploadedFile.url}');
+```
+
+### File Upload Guidelines
+
+- **Filename**: Required, must be ≤ 255 bytes and valid UTF-8
+- **Content Type**: Optional, defaults to `application/octet-stream`
+- **Metadata**: Optional JSON object for storing custom information
+- **File Size**: Check Replicate's current limits for maximum file size
+
+## Get File Details
+
+Get the details of a specific file by its ID:
+
+```dart
+ReplicateFile file = await Replicate.instance.files.get(
+  fileId: 'your-file-id-here',
+);
+
+print('File name: ${file.name}');
+print('File size: ${file.size} bytes');
+print('Content type: ${file.contentType}');
+print('Created at: ${file.createdAt}');
+print('Metadata: ${file.metadata}');
+```
+
+## Delete File
+
+Delete a file by its ID. Once deleted, the file cannot be recovered:
+
+```dart
+await Replicate.instance.files.delete(
+  fileId: 'your-file-id-here',
+);
+
+print('File deleted successfully');
+```
+
+**Note**: Once a file has been deleted, subsequent requests to the file resource will return 404 Not Found.
+
+## Using Files with Predictions
+
+After uploading a file, you can use its URL in model predictions:
+
+```dart
+// Upload a file first
+File inputImage = File('/path/to/input.jpg');
+ReplicateFile uploadedFile = await Replicate.instance.files.create(
+  file: inputImage,
+  filename: 'input.jpg',
+  contentType: 'image/jpeg',
+);
+
+// Use the file URL in a prediction
+Prediction prediction = await Replicate.instance.predictions.create(
+  version: "your-model-version-id",
+  input: {
+    "image": uploadedFile.url, // Use the uploaded file's URL
+    "prompt": "Transform this image",
+  },
+);
+```
+
+## File URLs and Access
+
+- Files uploaded via the API are served by `replicate.delivery` and its subdomains
+- File URLs require authorization headers for access
+- If you use an allow list of external domains, add `replicate.delivery` and `*.replicate.delivery` to it
 
 <br>
 

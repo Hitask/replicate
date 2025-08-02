@@ -1,9 +1,24 @@
 import 'package:replicate/replicate.dart';
 
-
 void main() async {
   // Setting your API key.
-  Replicate.apiKey = 'r8_d9FND9DDT2lFwtQ6QzWFRwrYQvGlwen45j1cB';
+  // IMPORTANT: Replace this with your actual API key from https://replicate.com/account/api-tokens
+  // For security, consider using environment variables instead of hardcoding the key
+  const apiKey = String.fromEnvironment('REPLICATE_API_TOKEN',
+      defaultValue: 'YOUR_API_KEY_HERE');
+
+  if (apiKey == 'YOUR_API_KEY_HERE') {
+    print('❌ Please set your Replicate API key!');
+    print('   You can either:');
+    print(
+        '   1. Replace YOUR_API_KEY_HERE with your actual API key in this file');
+    print('   2. Set the REPLICATE_API_TOKEN environment variable');
+    print(
+        '   3. Get your API key from https://replicate.com/account/api-tokens');
+    return;
+  }
+
+  Replicate.apiKey = apiKey;
 
   // Setting showLogs to true will print all the requests and responses to the console.
   Replicate.showLogs = true;

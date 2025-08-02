@@ -2,14 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:replicate/src/network/builder/headers.dart';
+import 'package:http/http.dart' as http;
 
 import '../exceptions/replicate_exception.dart';
 import '../utils/logger.dart';
-
-import 'package:http/http.dart' as http;
-
-import 'package:path/path.dart';
-
 class ReplicateHttpClient {
   static Future<T> get<T>({
     required T Function(Map<String, dynamic>) onSuccess,
@@ -46,6 +42,58 @@ class ReplicateHttpClient {
       body: jsonEncode(body),
     );
     ReplicateLogger.logRequestEnd(to);
+    final decodedBody = jsonDecode(response.body) as Map<String, dynamic>;
+
+    final error = decodedBody["error"];
+    final detail = decodedBody["detail"];
+    if (error == null && detail == null) {
+      return onSuccess(decodedBody);
+    } else {
+      throw ReplicateException(
+        message: error ?? detail ?? "Unknown error",
+        statsCode: response.statusCode,
+      );
+    }
+  }
+
+  static Future<T> postMultipart<T>({
+    required T Function(Map<String, dynamic>) onSuccess,
+    required String to,
+    required File file,
+    required String filename,
+    String? contentType,
+    Map<String, dynamic>? metadata,
+  }) async {
+    ReplicateLogger.logRequestStart(to);
+
+    final request = http.MultipartRequest('POST', Uri.parse(to));
+
+    // Add headers (but not Content-Type as it's set by MultipartRequest)
+    final headers = HeaderBuilder.build(false);
+    headers.forEach((key, value) {
+      if (key.toLowerCase() != 'content-type') {
+        request.headers[key] = value;
+      }
+    });
+
+    // Add file
+    final multipartFile = await http.MultipartFile.fromPath(
+      'content',
+      file.path,
+      filename: filename,
+    );
+    request.files.add(multipartFile);
+
+    // Add metadata if provided
+    if (metadata != null) {
+      request.fields['metadata'] = jsonEncode(metadata);
+    }
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    ReplicateLogger.logRequestEnd(to);
+
     final decodedBody = jsonDecode(response.body) as Map<String, dynamic>;
 
     final error = decodedBody["error"];

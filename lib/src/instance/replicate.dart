@@ -4,6 +4,7 @@ import '../exceptions/missing_api_key_exception.dart';
 import '../network/builder/headers.dart';
 import '../utils/logger.dart';
 import 'predictions/predictions.dart';
+import 'files/files.dart';
 
 class Replicate {
   /// This is an internal api key that is used to make requests to the Replicate API, can be set only with it's setter.
@@ -49,12 +50,19 @@ class Replicate {
   /// Replicate.instance.predictions;
   ReplicatePrediction get predictions => ReplicatePrediction();
 
-  /// This id the responsible member of the Replicate's models API, where you can call the methods to get version(s), delete, get a collection of models.
+  /// This is the responsible member of the Replicate's models API, where you can call the methods to get version(s), delete, get a collection of models.
   /// Example:
   /// ```dart
   ///Replicate.instance.models;
   /// ```
   ReplicateModels get models => ReplicateModels();
+
+  /// This is the responsible member of the Replicate's files API, where you can call the methods to list, create, get and delete files.
+  /// Example:
+  /// ```dart
+  /// Replicate.instance.files;
+  /// ```
+  ReplicateFiles get files => ReplicateFiles();
 
   // A private constructor. Allows us to create instance of Replicate only from within the Replicate class itself.
   Replicate._();
