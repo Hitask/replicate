@@ -11,6 +11,7 @@ A community-maintained Dart client package for Replicate.com, this package let y
 - Easy to configure, and set your settings using this library.
 - **Files API** support for uploading, listing, getting, and deleting files on Replicate.
 - **Training API** support for creating, monitoring, and managing model training jobs.
+- **Account API** support for retrieving authenticated user or organization information.
 - Comprehensive error handling with specific exception types.
 
 # Full Documentation
@@ -575,6 +576,51 @@ try {
   }
 }
 ```
+
+<br>
+
+# Account API
+
+The Account API allows you to retrieve information about the authenticated user or organization associated with your API token. This is useful for verifying your authentication and getting account details.
+
+## Get Account Information
+
+Retrieve information about the authenticated account:
+
+```dart
+try {
+  // Get account information
+  ReplicateAccount account = await Replicate.instance.account.get();
+  
+  print('Account Type: ${account.type}'); // "user" or "organization"
+  print('Username: ${account.username}');
+  print('Display Name: ${account.name}');
+  
+  if (account.githubUrl != null) {
+    print('GitHub URL: ${account.githubUrl}');
+  }
+  
+} catch (e) {
+  if (e is ReplicateException) {
+    print('Account API error: ${e.message}');
+    print('Status code: ${e.statsCode}');
+  } else {
+    print('Unexpected error: $e');
+  }
+}
+```
+
+The account object contains:
+- **type**: The account type ("user" or "organization")
+- **username**: The account username
+- **name**: The display name of the user or organization
+- **githubUrl**: Optional GitHub profile URL
+
+This is particularly useful for:
+- Verifying API token validity
+- Displaying current user information in your application
+- Determining if the account is a user or organization account
+- Getting the correct owner name for creating models or other resources
 
 <br>
 
