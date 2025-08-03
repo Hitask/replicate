@@ -5,7 +5,7 @@ class ReplicateModel extends Equatable {
   final String url;
   final String owner;
   final String name;
-  final String description;
+  final String? description;
   final String? visibility;
   final String? githubUrl;
   final String? paperUrl;
@@ -19,7 +19,7 @@ class ReplicateModel extends Equatable {
     required this.url,
     required this.owner,
     required this.name,
-    required this.description,
+    this.description,
     required this.visibility,
     required this.githubUrl,
     required this.paperUrl,
