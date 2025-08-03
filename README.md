@@ -10,6 +10,7 @@ A community-maintained Dart client package for Replicate.com, this package let y
 - Wrappers around response fields, for a better developer experience.
 - Easy to configure, and set your settings using this library.
 - **Files API** support for uploading, listing, getting, and deleting files on Replicate.
+- **Training API** support for creating, monitoring, and managing model training jobs.
 - Comprehensive error handling with specific exception types.
 
 # Full Documentation
@@ -366,6 +367,187 @@ Prediction prediction = await Replicate.instance.predictions.create(
 - Files uploaded via the API are served by `replicate.delivery` and its subdomains
 - File URLs require authorization headers for access
 - If you use an allow list of external domains, add `replicate.delivery` and `*.replicate.delivery` to it
+
+<br>
+
+# Training API
+
+The Training API allows you to create, monitor, and manage training jobs on Replicate. Training lets you fine-tune models with your own data to create custom versions tailored to your specific use cases.
+
+## List Trainings
+
+Get a paginated list of all trainings created by the user or organization:
+
+```dart
+PaginatedTrainings trainings = await Replicate.instance.trainings.list();
+print('Found ${trainings.results.length} trainings');
+
+for (ReplicateTraining training in trainings.results) {
+  print('- ${training.id}: ${training.status} (${training.model})');
+}
+
+// Check for pagination
+if (trainings.hasNextPage) {
+  print('More trainings available');
+}
+```
+
+## Create a Training
+
+Create a new training job by specifying the model, version, destination, and training parameters:
+
+```dart
+ReplicateTraining training = await Replicate.instance.trainings.create(
+  modelOwner: 'stability-ai',
+  modelName: 'sdxl',
+  versionId: 'da77bc59ee60423279fd632efb4795ab731d9e3ca9705ef3341091fb989b7eaf',
+  destination: 'your-username/your-custom-model', // Must be an existing model you own
+  input: {
+    'input_images': 'https://example.com/training-data.zip',
+    'caption': 'A photo of a TOK person',
+    'steps': 1000,
+    'learning_rate': 1e-6,
+  },
+  webhook: 'https://your-webhook-url.com/training-webhook', // Optional
+  webhookEventsFilter: ['start', 'completed'], // Optional
+);
+
+print('Training created: ${training.id}');
+print('Status: ${training.status}');
+print('Web URL: ${training.urls.get}');
+```
+
+### Training Parameters
+
+- **modelOwner**: Username of the model owner
+- **modelName**: Name of the model to train
+- **versionId**: ID of the specific model version to train
+- **destination**: Target model identifier in format "owner/model-name" (must exist and you must have write access)
+- **input**: Training parameters specific to the model (varies by model)
+- **webhook**: Optional HTTPS URL for status updates
+- **webhookEventsFilter**: Optional list of events that trigger webhooks (`start`, `output`, `logs`, `completed`)
+
+## Monitor Training Progress
+
+Get the current state of a training and monitor its progress:
+
+```dart
+ReplicateTraining training = await Replicate.instance.trainings.get(
+  trainingId: 'your-training-id',
+);
+
+print('Training Status: ${training.status}');
+print('Created: ${training.createdAt}');
+
+// Check training state
+if (training.isRunning) {
+  print('Training is in progress...');
+  if (training.logs != null) {
+    print('Recent logs: ${training.logs}');
+  }
+} else if (training.isSucceeded) {
+  print('Training completed successfully!');
+  if (training.output != null) {
+    print('Output: ${training.output}');
+  }
+  if (training.metrics != null) {
+    print('Training time: ${training.metrics!.predictTime} seconds');
+  }
+} else if (training.isFailed) {
+  print('Training failed: ${training.error}');
+} else if (training.isCanceled) {
+  print('Training was canceled');
+}
+```
+
+### Training Status
+
+Training status can be one of:
+- **starting**: The training is starting up
+- **processing**: The train() method is currently running
+- **succeeded**: The training completed successfully
+- **failed**: The training encountered an error
+- **canceled**: The training was canceled
+
+## Cancel a Training
+
+Cancel a running training:
+
+```dart
+ReplicateTraining canceledTraining = await Replicate.instance.trainings.cancel(
+  trainingId: 'your-training-id',
+);
+
+print('Training canceled. Status: ${canceledTraining.status}');
+```
+
+**Note**: Only running trainings (status `starting` or `processing`) can be canceled.
+
+## Training Best Practices
+
+### 1. Prepare Your Training Data
+```dart
+// Upload training data using the Files API first
+File trainingData = File('/path/to/training-data.zip');
+ReplicateFile uploadedData = await Replicate.instance.files.create(
+  file: trainingData,
+  filename: 'training-data.zip',
+  contentType: 'application/zip',
+);
+
+// Use the uploaded file URL in training
+final training = await Replicate.instance.trainings.create(
+  // ... other parameters
+  input: {
+    'input_images': uploadedData.url,
+    // ... other training parameters
+  },
+);
+```
+
+### 2. Monitor Training with Polling
+```dart
+Future<void> monitorTraining(String trainingId) async {
+  ReplicateTraining training;
+  
+  do {
+    await Future.delayed(Duration(seconds: 30)); // Wait 30 seconds
+    training = await Replicate.instance.trainings.get(trainingId: trainingId);
+    
+    print('Status: ${training.status}');
+    
+  } while (training.isRunning);
+  
+  if (training.isSucceeded) {
+    print('Training completed! New model version created.');
+  }
+}
+```
+
+### 3. Use Webhooks for Real-time Updates
+```dart
+final training = await Replicate.instance.trainings.create(
+  // ... other parameters
+  webhook: 'https://your-app.com/webhooks/training',
+  webhookEventsFilter: ['start', 'output', 'completed'],
+);
+```
+
+### 4. Error Handling
+```dart
+try {
+  final training = await Replicate.instance.trainings.create(
+    // ... parameters
+  );
+} catch (e) {
+  if (e is ReplicateException) {
+    print('Training API error: ${e.message}');
+    print('Status code: ${e.statsCode}');
+  } else {
+    print('Unexpected error: $e');
+  }
+}
+```
 
 <br>
 

@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 import '../exceptions/replicate_exception.dart';
 import '../utils/logger.dart';
+
 class ReplicateHttpClient {
   static Future<T> get<T>({
     required T Function(Map<String, dynamic>) onSuccess,
