@@ -4,10 +4,25 @@ import '../models/model/model.dart';
 abstract class ReplicateModelsBase
     implements
         GetModel,
+        CreateModel,
         GetModelsVersions,
         GetModelVersion,
         DeleteModelVersion,
         GetCollectionsModels {}
+
+abstract class CreateModel {
+  Future<ReplicateModel> create({
+    required String owner,
+    required String name,
+    required String description,
+    required String visibility,
+    required String hardware,
+    String? coverImageUrl,
+    String? githubUrl,
+    String? licenseUrl,
+    String? paperUrl,
+  });
+}
 
 abstract class GetCollectionsModels {
   Future<ModelsCollection> collection({

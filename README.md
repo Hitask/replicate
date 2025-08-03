@@ -175,6 +175,33 @@ print(model.owner); // replicate
 
 <br>
 
+## Create Model
+
+Creates a new model with the specified parameters. You can create both public and private models.
+
+```dart
+ReplicateModel newModel = await Replicate.instance.models.create(
+  owner: "your-username", // Must be your username or organization
+  name: "my-awesome-model",
+  description: "A model that does amazing things",
+  visibility: "private", // "public" or "private"
+  hardware: "cpu", // Hardware SKU: "cpu", "gpu-t4", "gpu-a40-small", etc.
+  
+  // Optional parameters
+  githubUrl: "https://github.com/your-username/your-model-repo",
+  coverImageUrl: "https://example.com/model-cover.jpg",
+  licenseUrl: "https://opensource.org/licenses/MIT",
+  paperUrl: "https://arxiv.org/abs/example",
+);
+
+print("Model created: ${newModel.name}");
+print("URL: ${newModel.url}");
+```
+
+**Note**: There is a limit of 1,000 models per account. For most purposes, we recommend using a single model and pushing new versions of the model as you make changes to it.
+
+<br>
+
 ## Get a list of model versions
 
 Gets a model's versions as a paginated list, based on it's owner and name.

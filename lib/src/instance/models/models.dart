@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 import 'package:replicate/src/network/builder/endpoint_url.dart';
 import 'package:replicate/src/network/http_client.dart';
 
@@ -8,6 +7,83 @@ import '../../models/model/model.dart';
 import '../../models/model/version.dart';
 
 class ReplicateModels implements ReplicateModelsBase {
+  /// Creates a new model with the specified parameters.
+  ///
+  /// [owner] is the name of the user or organization that will own the model.
+  /// This must be the same as the user or organization that is making the API request.
+  ///
+  /// [name] is the name of the model. This must be unique among all models owned by the user or organization.
+  ///
+  /// [description] is a description of the model.
+  ///
+  /// [visibility] determines whether the model should be public or private.
+  /// A public model can be viewed and run by anyone, whereas a private model
+  /// can be viewed and run only by the user or organization members that own the model.
+  ///
+  /// [hardware] is the SKU for the hardware used to run the model.
+  /// Possible values can be retrieved from the hardware.list endpoint.
+  ///
+  /// [coverImageUrl] is an optional URL for the model's cover image.
+  ///
+  /// [githubUrl] is an optional URL for the model's source code on GitHub.
+  ///
+  /// [licenseUrl] is an optional URL for the model's license.
+  ///
+  /// [paperUrl] is an optional URL for the model's paper.
+  ///
+  /// ```dart
+  /// ReplicateModel model = await Replicate.instance.models.create(
+  ///   owner: "alice",
+  ///   name: "hot-dog-detector",
+  ///   description: "Detect hot dogs in images",
+  ///   visibility: "public",
+  ///   hardware: "cpu",
+  /// );
+  /// print(model.name); // hot-dog-detector
+  /// ```
+  @override
+  Future<ReplicateModel> create({
+    required String owner,
+    required String name,
+    required String description,
+    required String visibility,
+    required String hardware,
+    String? coverImageUrl,
+    String? githubUrl,
+    String? licenseUrl,
+    String? paperUrl,
+  }) async {
+    final Map<String, dynamic> requestBody = {
+      'owner': owner,
+      'name': name,
+      'description': description,
+      'visibility': visibility,
+      'hardware': hardware,
+    };
+
+    // Add optional parameters if provided
+    if (coverImageUrl != null) {
+      requestBody['cover_image_url'] = coverImageUrl;
+    }
+    if (githubUrl != null) {
+      requestBody['github_url'] = githubUrl;
+    }
+    if (licenseUrl != null) {
+      requestBody['license_url'] = licenseUrl;
+    }
+    if (paperUrl != null) {
+      requestBody['paper_url'] = paperUrl;
+    }
+
+    return await ReplicateHttpClient.post<ReplicateModel>(
+      to: EndpointUrlBuilder.build(["models"]),
+      body: requestBody,
+      onSuccess: (Map<String, dynamic> response) {
+        return ReplicateModel.fromJson(response);
+      },
+    );
+  }
+
   /// Gets a single model, based on it's owner and name, and returns it as a [ReplicateModel].
   ///
   ///

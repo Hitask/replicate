@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:replicate/src/network/builder/headers.dart';
 import 'package:http/http.dart' as http;
@@ -43,6 +44,17 @@ class ReplicateHttpClient {
       body: jsonEncode(body),
     );
     ReplicateLogger.logRequestEnd(to);
+
+    // Check if response is JSON before trying to decode
+    final contentType = response.headers['content-type'];
+    if (contentType == null || !contentType.contains('application/json')) {
+      throw ReplicateException(
+        message:
+            "Server returned non-JSON response (status ${response.statusCode}): ${response.body.substring(0, math.min(200, response.body.length))}...",
+        statsCode: response.statusCode,
+      );
+    }
+
     final decodedBody = jsonDecode(response.body) as Map<String, dynamic>;
 
     final error = decodedBody["error"];
