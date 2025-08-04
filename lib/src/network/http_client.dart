@@ -25,10 +25,18 @@ class ReplicateHttpClient {
     final error = decodedBody["error"];
     final detail = decodedBody["detail"];
 
-    if (error == null && detail == null) {
+    // Check for successful status codes (2xx) and no error fields
+    if (response.statusCode >= 200 &&
+        response.statusCode < 300 &&
+        error == null &&
+        detail == null) {
       return onSuccess(decodedBody);
     } else {
-      throw ReplicateException(message: error, statsCode: response.statusCode);
+      // Handle error cases - either error fields present or non-2xx status code
+      final errorMessage =
+          error ?? detail ?? "HTTP ${response.statusCode} error";
+      throw ReplicateException(
+          message: errorMessage, statsCode: response.statusCode);
     }
   }
 
@@ -59,11 +67,19 @@ class ReplicateHttpClient {
 
     final error = decodedBody["error"];
     final detail = decodedBody["detail"];
-    if (error == null && detail == null) {
+
+    // Check for successful status codes (2xx) and no error fields
+    if (response.statusCode >= 200 &&
+        response.statusCode < 300 &&
+        error == null &&
+        detail == null) {
       return onSuccess(decodedBody);
     } else {
+      // Handle error cases - either error fields present or non-2xx status code
+      final errorMessage =
+          error ?? detail ?? "HTTP ${response.statusCode} error";
       throw ReplicateException(
-        message: error ?? detail ?? "Unknown error",
+        message: errorMessage,
         statsCode: response.statusCode,
       );
     }
@@ -111,11 +127,19 @@ class ReplicateHttpClient {
 
     final error = decodedBody["error"];
     final detail = decodedBody["detail"];
-    if (error == null && detail == null) {
+
+    // Check for successful status codes (2xx) and no error fields
+    if (response.statusCode >= 200 &&
+        response.statusCode < 300 &&
+        error == null &&
+        detail == null) {
       return onSuccess(decodedBody);
     } else {
+      // Handle error cases - either error fields present or non-2xx status code
+      final errorMessage =
+          error ?? detail ?? "HTTP ${response.statusCode} error";
       throw ReplicateException(
-        message: error ?? detail ?? "Unknown error",
+        message: errorMessage,
         statsCode: response.statusCode,
       );
     }
@@ -138,13 +162,19 @@ class ReplicateHttpClient {
 
     final error = decodedBody["error"];
     final detail = decodedBody["detail"];
-    if (error == null && detail == null) {
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        return onSuccess();
-      }
+
+    // Check for successful status codes (2xx) and no error fields
+    if (response.statusCode >= 200 &&
+        response.statusCode < 300 &&
+        error == null &&
+        detail == null) {
+      return onSuccess();
     } else {
+      // Handle error cases - either error fields present or non-2xx status code
+      final errorMessage =
+          error ?? detail ?? "HTTP ${response.statusCode} error";
       throw ReplicateException(
-        message: error ?? detail ?? "Unknown error",
+        message: errorMessage,
         statsCode: response.statusCode,
       );
     }

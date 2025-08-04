@@ -5,6 +5,7 @@ import '../../base/models_base.dart';
 import '../../models/collection/collection.dart';
 import '../../models/model/model.dart';
 import '../../models/model/version.dart';
+import '../../exceptions/replicate_exception.dart';
 
 class ReplicateModels implements ReplicateModelsBase {
   /// Creates a new model with the specified parameters.
@@ -99,16 +100,19 @@ class ReplicateModels implements ReplicateModelsBase {
   /// );
   /// print(model);
   /// ```
+  ///
+  /// Throws [ReplicateException] for API errors.
   @override
   Future<ReplicateModel> get({
     required String modelOwner,
     required String modelName,
   }) async {
     return await ReplicateHttpClient.get<ReplicateModel>(
-        from: EndpointUrlBuilder.build(["models", modelOwner, modelName]),
-        onSuccess: (Map<String, dynamic> response) {
-          return ReplicateModel.fromJson(response);
-        });
+      from: EndpointUrlBuilder.build(["models", modelOwner, modelName]),
+      onSuccess: (Map<String, dynamic> response) {
+        return ReplicateModel.fromJson(response);
+      },
+    );
   }
 
   /// Gets a model's versions as a paginated list, based on it's owner and name.
@@ -227,6 +231,8 @@ class ReplicateModels implements ReplicateModelsBase {
   ///
   /// print(modelVersion.id); // ...
   /// ```
+  ///
+  /// Throws [ReplicateException] for API errors.
   @override
   Future<ReplicateModelVersion> version({
     required String modelOwner,
