@@ -12,6 +12,7 @@ A community-maintained Dart client package for Replicate.com, this package let y
 - **Files API** support for uploading, listing, getting, and deleting files on Replicate.
 - **Training API** support for creating, monitoring, and managing model training jobs.
 - **Account API** support for retrieving authenticated user or organization information.
+- **Hardware API** support for listing available computational resources (CPU, GPU types).
 - Comprehensive error handling with specific exception types.
 
 # Full Documentation
@@ -621,6 +622,73 @@ This is particularly useful for:
 - Displaying current user information in your application
 - Determining if the account is a user or organization account
 - Getting the correct owner name for creating models or other resources
+
+<br>
+
+# Hardware API
+
+The Hardware API allows you to retrieve information about available hardware options for running models and deployments on Replicate. This is useful when creating models or deployments to specify which computational resources to use.
+
+## List Available Hardware
+
+Get a list of all available hardware options:
+
+```dart
+try {
+  // Get list of available hardware
+  List<ReplicateHardware> hardwareList = await Replicate.instance.hardware.list();
+  
+  print('Available Hardware Options:');
+  for (final hardware in hardwareList) {
+    print('${hardware.name}: ${hardware.sku}');
+  }
+  
+  // Find specific hardware by SKU
+  final gpuT4 = hardwareList.where((h) => h.sku == 'gpu-t4').firstOrNull;
+  if (gpuT4 != null) {
+    print('Found T4 GPU: ${gpuT4.name}');
+  }
+  
+  // List all GPU options
+  final gpuOptions = hardwareList.where((h) => h.sku.startsWith('gpu-')).toList();
+  print('GPU Options: ${gpuOptions.length} available');
+  
+} catch (e) {
+  if (e is ReplicateException) {
+    print('Hardware API error: ${e.message}');
+    print('Status code: ${e.statsCode}');
+  } else {
+    print('Unexpected error: $e');
+  }
+}
+```
+
+### Hardware Object
+
+Each hardware object contains:
+- **name**: Human-readable name (e.g., "Nvidia T4 GPU", "CPU")
+- **sku**: SKU identifier used in API calls (e.g., "gpu-t4", "cpu")
+
+### Usage with Models and Deployments
+
+Use the hardware SKU when creating models or deployments:
+
+```dart
+// Example: Creating a model with specific hardware
+await Replicate.instance.models.create(
+  owner: "your-username",
+  name: "my-model",
+  description: "A model using T4 GPU",
+  visibility: "private",
+  hardware: "gpu-t4", // Use the SKU from hardware.list()
+);
+```
+
+Typical hardware options include:
+- **CPU**: `cpu` - Standard CPU processing
+- **Nvidia T4 GPU**: `gpu-t4` - Cost-effective GPU for most models
+- **Nvidia A40 GPU**: `gpu-a40-small` - High-performance GPU for larger models  
+- **Nvidia A40 (Large) GPU**: `gpu-a40-large` - Maximum performance GPU
 
 <br>
 

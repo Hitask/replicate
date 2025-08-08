@@ -7,6 +7,7 @@ import 'predictions/predictions.dart';
 import 'files/files.dart';
 import 'trainings/trainings.dart';
 import 'account/account.dart';
+import 'hardware/hardware.dart';
 
 class Replicate {
   /// This is an internal api key that is used to make requests to the Replicate API, can be set only with it's setter.
@@ -79,6 +80,13 @@ class Replicate {
   /// Replicate.instance.account;
   /// ```
   ReplicateAccountAPI get account => ReplicateAccountAPI();
+
+  /// This is the responsible member of the Replicate's hardware API, where you can call the method to list available hardware.
+  /// Example:
+  /// ```dart
+  /// Replicate.instance.hardware;
+  /// ```
+  ReplicateHardwareAPI get hardware => ReplicateHardwareAPI();
 
   // A private constructor. Allows us to create instance of Replicate only from within the Replicate class itself.
   Replicate._();

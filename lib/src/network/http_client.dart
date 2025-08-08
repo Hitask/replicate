@@ -40,6 +40,62 @@ class ReplicateHttpClient {
     }
   }
 
+  /// HTTP GET method specifically for endpoints that return JSON arrays
+  static Future<T> getArray<T>({
+    required T Function(List<dynamic>) onSuccess,
+    required String from,
+  }) async {
+    ReplicateLogger.logRequestStart(from);
+    final response = await http.get(
+      Uri.parse(from),
+      headers: HeaderBuilder.build(),
+    );
+    ReplicateLogger.logRequestEnd(from);
+
+    // Check for successful status codes (2xx) first
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      try {
+        final decodedBody = jsonDecode(response.body);
+        
+        // Handle JSON array response
+        if (decodedBody is List<dynamic>) {
+          return onSuccess(decodedBody);
+        }
+        
+        // Handle JSON object that might contain error
+        if (decodedBody is Map<String, dynamic>) {
+          final error = decodedBody["error"];
+          final detail = decodedBody["detail"];
+          
+          if (error != null || detail != null) {
+            final errorMessage = error ?? detail ?? "API error";
+            throw ReplicateException(
+                message: errorMessage, statsCode: response.statusCode);
+          }
+          
+          // If no error fields, this might be an unexpected response format
+          throw ReplicateException(
+              message: "Expected JSON array but received JSON object", 
+              statsCode: response.statusCode);
+        }
+        
+        throw ReplicateException(
+            message: "Unexpected response format", 
+            statsCode: response.statusCode);
+      } catch (e) {
+        if (e is ReplicateException) rethrow;
+        throw ReplicateException(
+            message: "Failed to parse JSON response: $e", 
+            statsCode: response.statusCode);
+      }
+    } else {
+      // Handle non-2xx status codes
+      throw ReplicateException(
+          message: "HTTP ${response.statusCode} error", 
+          statsCode: response.statusCode);
+    }
+  }
+
   static Future<T> post<T>({
     required T Function(Map<String, dynamic>) onSuccess,
     required String to,

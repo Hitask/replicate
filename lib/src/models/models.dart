@@ -7,3 +7,4 @@ export './files/paginated_files.dart';
 export './trainings/training.dart';
 export './trainings/paginated_trainings.dart';
 export './account/account.dart';
+export './hardware/hardware.dart';
